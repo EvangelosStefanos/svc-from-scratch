@@ -1,10 +1,6 @@
-import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
-import sys
-import Svm
 import Svm_Mc
 import numpy.random
 import time
@@ -142,10 +138,3 @@ def preprocess(X, Y, X2, Y2):
   data = {'X':X, 'Y':Y, 'X2':X2, 'Y2':Y2}
   return data
 
-
-def copy(x):
-  return np.copy(x)
-
-
-def naxes(x):
-  return len(np.shape(x))

@@ -1,17 +1,8 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
-import cvxopt
-from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
-import sys
-import Svm
-import Svm_Mc
-import numpy.random
 import time
 from functions import*
 
-cvxopt.solvers.options['show_progress'] = False
 # np.set_printoptions(precision=4, threshold=1000)
 
 
@@ -31,8 +22,8 @@ model = svm(XY, z)
 '''
 
 start = time.time()
-mnistTrain ='data/mnist_train.csv'
-mnistTest = 'data/mnist_test.csv'
+mnistTrain ='input/mnist_train.csv'
+mnistTest = 'input/mnist_test.csv'
 file = open('logs/res.txt', 'w')
 col = ['Kernel', 'C', 'Degree', 'TrainA', 'TestA', 'TrainT']
 maxSamples = 100 * 10
