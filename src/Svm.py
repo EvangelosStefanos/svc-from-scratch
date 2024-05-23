@@ -1,6 +1,8 @@
 import numpy as np
 import cvxopt
 
+# Support Vector Machine Binary Classifier
+
 class Svm:  
   def __init__(self, C=1.0, kernel='linear', degree=1):
     """
@@ -12,7 +14,10 @@ class Svm:
     self.KERNEL_POLY = 'poly'
     
     cvxopt.solvers.options['show_progress'] = False
-    cvxopt.solvers.options['maxiters'] = 1000
+    cvxopt.solvers.options['abstol'] = 1e-10
+    cvxopt.solvers.options['reltol'] = 1e-10
+    cvxopt.solvers.options['feastol'] = 1e-10
+    cvxopt.solvers.options['maxiters'] = 100000
 
     # parameter test #
 
@@ -35,8 +40,8 @@ class Svm:
   def kernel_linear(self, x_i, x_j):
     '''
     K(x_i, x_j) = (x_i)^T * x_j
-    @param x_i float
-    @param x_j float
+    @param x_i array of shape (nfeatures,)
+    @param x_j array of shape (nfeatures,)
     @return K(x_i, x_j) float
     '''
     return np.inner(x_i, x_j)
@@ -45,45 +50,43 @@ class Svm:
   def kernel_polynomial(self, x_i, x_j):
     '''
     K(x_i, x_j) = ((x_i)^T * x_j + 1)^d
-    @param x_i float
-    @param x_j float
+    @param x_i array of shape (nfeatures,)
+    @param x_j array of shape (nfeatures,)
     @return K(x_i, x_j) float
     '''
-    return pow((np.inner(x_i, x_j) + 1), self.degree)
+    return (np.inner(x_i, x_j) + 1.0)**self.degree
 
 
   def compute_w(self):
     '''
     n = number of support vectors
     w = sum_i=1...n(a_i * y_i * x_i)
-    w array of shape (nfeatures, 1)
+    @return w array of shape (nfeatures, 1)
     '''
     if(self.kernel != self.kernel_linear):
       # dont compute w for non linear kernel
       return
     # compute w only for linear kernel
-    sv_w = 0
+    w = np.zeros((self.nfeatures))
     for i in range(self.nsv):
       # (nfeatures,) = (1) * (1) * (nfeatures,)
-      sv_w += self.sv_a[i] * self.sv_y[i] * self.sv_x[i]
-    self.sv_w = sv_w.reshape((sv_w.shape[0], 1)) # (nfeatures, ) -> (nfeatures, 1)
-    return
+      w += self.sv_a[i] * self.sv_y[i] * self.sv_x[i]
+    return w.reshape((w.shape[0], 1)) # (nfeatures, ) -> (nfeatures, 1)
 
 
   def compute_b(self):
     '''
     n = number of support vectors
     b = sum_i=1...n(y_i - sum_j=1...n(a_j * y_j * K(x_i, x_j))) / n
-    b float
+    @return b float
     '''
-    sum_outer = 0
-    for i in range(0, self.nsv):
-      sum_inner = 0
-      for j in range(0, self.nsv):
-        sum_inner += self.sv_a[j] * self.sv_y[j] * self.kernel(self.sv_x[i], self.sv_x[j])
-      sum_outer += self.sv_y[i] - sum_inner
-    self.sv_b = sum_outer / self.nsv
-    return
+    sum_i = 0.0
+    for i in range(self.nsv):
+      sum_j = 0.0
+      for j in range(self.nsv):
+        sum_j += self.sv_a[j] * self.sv_y[j] * self.kernel(self.sv_x[i], self.sv_x[j])
+      sum_i += self.sv_y[i] - sum_j
+    return sum_i / self.nsv
 
 
   def fit(self, x, y):
@@ -107,19 +110,20 @@ class Svm:
 
     # init qp vars #
 
-    qp_P = np.zeros(shape=(nsamples, nsamples))
+    K = np.zeros(shape=(nsamples, nsamples))
     for i in range(nsamples):
       for j in range(nsamples):
-        qp_P[i,j] = y[i] * y[j] * self.kernel(x[i], x[j])
-
+        K[i,j] = self.kernel(x[i], x[j])
+    
+    qp_P = np.outer(y, y) * K
     qp_q = np.ones(shape=(nsamples, 1)) * (-1)
     I = np.identity(nsamples)
     qp_G = np.concatenate([I * (-1), I])
     qp_h_1 = np.zeros(shape=(nsamples, 1))
     qp_h_2 = np.ones(shape=(nsamples, 1)) * self.C
     qp_h = np.concatenate([qp_h_1, qp_h_2])
-    qp_A = y.reshape((1, nsamples))
-    qp_b = 0
+    qp_A = np.reshape(y, (1, nsamples))
+    qp_b = np.zeros(1)
 
     qp_P = cvxopt.matrix(qp_P, tc='d')
     qp_q = cvxopt.matrix(qp_q, tc='d')
@@ -131,23 +135,24 @@ class Svm:
     # execute qp #
 
     qp_res = cvxopt.solvers.qp(qp_P, qp_q, qp_G, qp_h, qp_A, qp_b)
-    qp_x = np.array(qp_res['x'])
+    qp_x = np.array(qp_res['x']).reshape((nsamples,)) # (nsamples, 1) -> (nsamples,)
 
     # get support vector data #
 
-    sv_idx = np.where(qp_x > 1e-3)[0]
+    self.sv_mask = qp_x > 1e-8
+    sv_idx = np.where(self.sv_mask)
+    self.sv_idx = sv_idx
 
     if(qp_x[sv_idx].shape[0] == 0):
       raise Exception('ERROR: No support vectors found. Got ' + str(qp_x))
 
-    print(str(qp_x[sv_idx].shape))
-    self.sv_a = qp_x[sv_idx].reshape(-1)
+    self.sv_a = qp_x[sv_idx]
     self.sv_x = x[sv_idx]
-    self.sv_y = y[sv_idx].reshape(-1)
+    self.sv_y = y[sv_idx]
     self.nsv = len(self.sv_a)
     
-    self.compute_w()
-    self.compute_b()
+    self.sv_w = self.compute_w()
+    self.sv_b = self.compute_b()
     return self
 
 
@@ -173,11 +178,10 @@ class Svm:
     # for non linear kernel don't use w for prediction
     f = np.zeros(x.shape[0])
     for i in range(x.shape[0]):
-      sum_ = 0
+      f[i] = self.sv_b
       for j in range(self.nsv):
-        #() = () * ()
-        sum_ += self.sv_a[j] * self.sv_y[j] * self.kernel(x[i], self.sv_x[j])
-      f[i] = sum_ + self.sv_b
+        #() = () * () * ()
+        f[i] += self.sv_a[j] * self.sv_y[j] * self.kernel(x[i], self.sv_x[j])
     return f
 
 

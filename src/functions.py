@@ -1,7 +1,7 @@
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
-import Svm_Mc
+import Svc
 import numpy.random
 import time
 
@@ -48,7 +48,7 @@ def trainTest(dataSets, params, maxSamples=None, maxFeatures=None):
   degree = params['d']
   trainX = X[:maxSamples,:maxFeatures]
   trainY = Y[:maxSamples]
-  model = Svm_Mc.Svm_Mc(kernel=kernel, C=C, degree=degree)
+  model = Svc.Svc(kernel=kernel, C=C, degree=degree)
   # train #
   start = time.time()
   if(model.fit(trainX, trainY) == None):
