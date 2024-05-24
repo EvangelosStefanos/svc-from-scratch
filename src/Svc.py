@@ -31,11 +31,11 @@ class Svc:
     self.nclasses = self.classes.shape[0]
 
     svms = [0] * self.nclasses
-    class_i = np.copy(y)
+    class_i = np.zeros(shape=y.shape)
     # create and train one svm for each class
     for i in range(self.nclasses):
-      class_i[y == self.classes[i]] = 1
-      class_i[y != self.classes[i]] = -1
+      class_i[y == self.classes[i]] = 1.0
+      class_i[y != self.classes[i]] = -1.0
       svms[i] = Svm.Svm(C=self.C, kernel=self.kernel, degree=self.degree)
       svms[i].fit(x, class_i)
     self.svms = svms

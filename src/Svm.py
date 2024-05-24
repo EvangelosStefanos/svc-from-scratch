@@ -116,9 +116,9 @@ class Svm:
         K[i,j] = self.kernel(x[i], x[j])
     
     qp_P = np.outer(y, y) * K
-    qp_q = np.ones(shape=(nsamples, 1)) * (-1)
+    qp_q = np.ones(shape=(nsamples, 1)) * (-1.0)
     I = np.identity(nsamples)
-    qp_G = np.concatenate([I * (-1), I])
+    qp_G = np.concatenate([I * (-1.0), I])
     qp_h_1 = np.zeros(shape=(nsamples, 1))
     qp_h_2 = np.ones(shape=(nsamples, 1)) * self.C
     qp_h = np.concatenate([qp_h_1, qp_h_2])
