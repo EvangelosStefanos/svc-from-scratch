@@ -3,6 +3,8 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 from trial import trial
 
+# test case for the gtzan dataset #
+
 LOGPATH = 'logs/gtzan.csv'
 DATANAME = 'gtzan'
 DATAPATH = 'input/features_3_sec.csv'

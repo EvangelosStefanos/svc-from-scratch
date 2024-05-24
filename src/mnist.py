@@ -3,6 +3,8 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 from trial import trial
 
+# test case for the mnist dataset #
+
 LOGPATH = 'logs/mnist.csv'
 DATANAME = 'mnist'
 TRAINPATH = 'input/mnist_train.csv'
