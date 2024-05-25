@@ -139,8 +139,8 @@ class Svm:
 
     # get support vector data #
 
-    self.sv_mask = qp_x > 1e-8
-    sv_idx = np.where(self.sv_mask)
+    sv_mask = (1e-10 <= qp_x) & (qp_x <= self.C)
+    sv_idx = np.asarray(sv_mask).nonzero()
     self.sv_idx = sv_idx
 
     if(qp_x[sv_idx].shape[0] == 0):
