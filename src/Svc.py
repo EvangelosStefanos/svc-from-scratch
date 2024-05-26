@@ -60,3 +60,9 @@ class Svc:
     for svm in self.svms:
       o += str(svm.nsv) + ' '
     return o + ']'
+
+  def support(self):
+    support = []
+    for svm in self.svms:
+      support += list(svm.sv_idx[0])
+    return support
