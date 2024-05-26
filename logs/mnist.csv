@@ -1,0 +1,9 @@
+Trial,Dataset,nTrain,nTest,nfeats,C,kernel,degree,Fit time svc-from-scratch,Fit time sklearn,Accuracy svm-from-scratch (train),Accuracy svm-from-scratch (test),Accuracy sklearn (train),Accuracy sklearn (test),Fraction of predictions matching sklearn (train),Fraction of predictions matching sklearn (test),Number of support vectors svm-from-scratch,Number of support vectors sklearn,Disjoint,svc-from-scratch subset,sklearn subset
+1,mnist,1000,10000,784,0.0001,linear,1,99.869,0.33,0.685,0.661,0.112,0.1135,0.159,0.1586,[ 208 232 214 221 216 205 208 220 208 214 ],[ 99 112  99 102  97  90  99 105  98  99],False,True,True
+2,mnist,1000,10000,784,0.01,linear,1,107.4119,0.1383,0.922,0.8675,0.947,0.8936,0.94,0.9212,[ 119 126 158 185 172 199 137 167 184 215 ],[52 63 77 73 72 80 60 71 74 84],False,False,False
+3,mnist,1000,10000,784,1.0,linear,1,98.1223,0.1014,1.0,0.8498,1.0,0.8918,1.0,0.8902,[ 85 68 113 150 108 164 91 99 143 138 ],[40 49 61 64 58 73 48 63 59 60],False,False,False
+4,mnist,1000,10000,784,100.0,linear,1,97.3017,0.1077,1.0,0.8498,1.0,0.8918,1.0,0.8902,[ 85 68 113 150 108 164 91 99 143 138 ],[40 49 61 64 58 73 48 63 59 60],False,False,False
+5,mnist,1000,10000,784,10000.0,linear,1,95.9338,0.1247,1.0,0.8498,1.0,0.8918,1.0,0.8902,[ 85 68 113 150 108 164 91 99 143 138 ],[40 49 61 64 58 73 48 63 59 60],False,False,False
+6,mnist,1000,10000,784,1.0,poly,2,100.9218,0.1286,1.0,0.9214,0.989,0.9075,0.989,0.9404,[ 137 91 170 202 163 209 132 154 218 209 ],[44 49 65 71 65 78 51 68 59 70],False,False,False
+7,mnist,1000,10000,784,1.0,poly,3,100.4117,0.1295,1.0,0.9156,0.972,0.88,0.972,0.9194,[ 182 119 219 233 225 243 176 201 259 255 ],[39 52 67 73 69 80 50 71 57 71],False,False,False
+8,mnist,1000,10000,784,1.0,poly,4,100.8478,0.1685,1.0,0.8988,0.937,0.8259,0.937,0.8747,[ 239 151 256 255 273 282 213 242 318 299 ],[39 59 67 80 72 79 59 76 57 70],False,False,False
