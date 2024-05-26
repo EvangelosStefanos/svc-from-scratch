@@ -14,10 +14,9 @@ class Svm:
     self.KERNEL_POLY = 'poly'
     
     cvxopt.solvers.options['show_progress'] = False
-    cvxopt.solvers.options['abstol'] = 1e-10
-    cvxopt.solvers.options['reltol'] = 1e-10
-    cvxopt.solvers.options['feastol'] = 1e-10
-    cvxopt.solvers.options['maxiters'] = 100000
+    cvxopt.solvers.options['abstol'] = 1e-20
+    cvxopt.solvers.options['reltol'] = 1e-20
+    cvxopt.solvers.options['feastol'] = 1e-20
 
     # parameter test #
 
@@ -39,20 +38,20 @@ class Svm:
 
   def kernel_linear(self, x_i, x_j):
     '''
-    K(x_i, x_j) = (x_i)^T * x_j
-    @param x_i array of shape (x, y)
-    @param x_j array of shape (z, y)
-    @return K(x_i, x_j) array of shape (x, z)
+    K(x_i, x_j) = x_i * (x_j)^T
+    @param x_i array of shape (nsamples_i, nfeatures)
+    @param x_j array of shape (nsamples_j, nfeatures)
+    @return K(x_i, x_j) array of shape (nsamples_i, nsamples_j)
     '''
     return np.matmul(x_i, x_j.T)
 
 
   def kernel_polynomial(self, x_i, x_j):
     '''
-    K(x_i, x_j) = ((x_i)^T * x_j + 1)^d
-    @param x_i array of shape (x, y)
-    @param x_j array of shape (z, y)
-    @return K(x_i, x_j) array of shape (x, z)
+    K(x_i, x_j) = (x_i * (x_j)^T + 1)^d
+    @param x_i array of shape (nsamples_i, nfeatures)
+    @param x_j array of shape (nsamples_j, nfeatures)
+    @return K(x_i, x_j) array of shape (nsamples_i, nsamples_j)
     '''
     return (np.matmul(x_i, x_j.T) + 1.0)**self.degree
 
@@ -106,12 +105,15 @@ class Svm:
         K[i,j] = self.kernel(x[i], x[j])
     
     qp_P = np.outer(y, y) * K
-    qp_q = np.ones(shape=(nsamples, 1)) * (-1.0)
-    I = np.identity(nsamples)
-    qp_G = np.concatenate([I * (-1.0), I])
-    qp_h_1 = np.zeros(shape=(nsamples, 1))
-    qp_h_2 = np.ones(shape=(nsamples, 1)) * self.C
-    qp_h = np.concatenate([qp_h_1, qp_h_2])
+    qp_q = np.ones((nsamples, 1)) * (-1.0)
+    qp_G = np.concatenate([
+      np.identity(nsamples) * (-1.0), 
+      np.identity(nsamples)
+    ])
+    qp_h = np.concatenate([
+      np.zeros((nsamples, 1)), 
+      np.ones((nsamples, 1)) * self.C
+    ])
     qp_A = np.reshape(y, (1, nsamples))
     qp_b = np.zeros(1)
 

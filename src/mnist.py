@@ -18,7 +18,10 @@ targetTrain = mnist['label']
 featuresTrain = mnist.drop(columns=['label'])
 
 # use a small sample for training
-featuresTrain, _, targetTrain, _ = train_test_split(featuresTrain, targetTrain, train_size=100, random_state=0, stratify=targetTrain)
+featuresTrain, _, targetTrain, _ = train_test_split(
+  featuresTrain, targetTrain, train_size=1000, 
+  random_state=0, stratify=targetTrain
+)
 
 scaler = MinMaxScaler()
 scaler.fit(featuresTrain)
