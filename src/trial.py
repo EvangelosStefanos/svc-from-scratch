@@ -1,62 +1,70 @@
 import time
 from sklearn.metrics import accuracy_score
 from sklearn.svm import SVC
+from sklearn.model_selection import ParameterGrid
 from Svc import Svc
 
-# train-test-evaluate cycle #
+class Trial:
 
-def trial(C, kernel, degree, featuresTrain, targetTrain, featuresTest, targetTest, dataname):
-  model1 = Svc(C=C, kernel=kernel, degree=degree) # svc-from-scratch #
-  start = time.time()
-  model1.fit(featuresTrain, targetTrain)
-  time1 = time.time()-start
 
-  predTrain = model1.predict(featuresTrain)
-  predTest = model1.predict(featuresTest)
-  accuracyTrain = accuracy_score(targetTrain, predTrain)
-  accuracyTest = accuracy_score(targetTest, predTest)
+  def __init__(self, dataname, x, y, xn, yn, grid):
+    self.dataname = dataname
+    self.x = x
+    self.y = y
+    self.xn = xn
+    self.yn = yn
+    self.grid = grid
+    return
 
-  model2 = SVC(C=C, kernel=kernel, degree=degree) # sklearn.svm.SVC #
-  start = time.time()
-  model2.fit(featuresTrain, targetTrain)
-  time2 = time.time()-start
 
-  predTrain2 = model2.predict(featuresTrain)
-  predTest2 = model2.predict(featuresTest)
-  accuracyTrain2 = accuracy_score(targetTrain, predTrain2)
-  accuracyTest2 = accuracy_score(targetTest, predTest2)
+  def create_record(self, p, m):
+    r = {}
+    r['Dataset'] = self.dataname
+    r['nTrain'] = self.x.shape[0]
+    r['nFeatures'] = self.x.shape[1]
+    r['nTest'] = self.xn.shape[0]
+    r['Model'] = m['name']
+    r['Time'] = round(m['time'], 4)
+    r['Accuracy (train)'] = round(m['accx'], 4)
+    r['Accuracy (test)'] = round(m['accxn'], 4)
+    r = {**r, **p}
+    r['Number of support vectors'] = str(m['model'].n_support_)
+    return r
 
-  matchTrain = accuracy_score(predTrain2, predTrain)
-  matchTest = accuracy_score(predTest2, predTest)
 
-  s1 = set(model1.support())
-  s2 = set(model2.support_)
-  disjoint = s1.isdisjoint(s2)
-  m1subset = False
-  m2subset = False
-  if not disjoint:
-    m1subset = s1.issubset(s2)
-    m2subset = s2.issubset(s1)
+  def evaluate(self, name, model, p):
+    start = time.time()
+    m = model(**p)
+    m.fit(self.x, self.y)
 
-  return [
-    { 
-      'Dataset':dataname, 
-      'nTrain':featuresTrain.shape[0], 
-      'nTest':featuresTest.shape[0], 
-      'nfeats':featuresTrain.shape[1], 
-      'C':C, 'kernel':kernel, 'degree':degree, 
-      'Fit time svc-from-scratch':round(time1, 4), 
-      'Fit time sklearn':round(time2, 4), 
-      'Accuracy svm-from-scratch (train)':round(accuracyTrain, 4), 
-      'Accuracy svm-from-scratch (test)':round(accuracyTest, 4), 
-      'Accuracy sklearn (train)':round(accuracyTrain2, 4), 
-      'Accuracy sklearn (test)':round(accuracyTest2, 4), 
-      'Fraction of predictions matching sklearn (train)':round(matchTrain, 4), 
-      'Fraction of predictions matching sklearn (test)':round(matchTest, 4), 
-      'Number of support vectors svm-from-scratch':str(model1.nsupport()),
-      'Number of support vectors sklearn':str(model2.n_support_),
-      'Disjoint':disjoint,
-      'svc-from-scratch subset':m1subset,
-      'sklearn subset':m2subset,
-    },
-  ]
+    predx = m.predict(self.x)
+    accx = accuracy_score(self.y, predx)
+    predxn = m.predict(self.xn)
+    accxn = accuracy_score(self.yn, predxn)
+    t = time.time()-start
+    return {
+      'name':name,
+      'model':m, 
+      'time':t, 
+      'predx':predx,
+      'accx':accx,
+      'predxn':predxn,
+      'accxn':accxn,
+      'nsupp':m.n_support_
+      }
+
+
+  def trial(self, p):
+    m1 = self.evaluate('svc-from-scratch', Svc, p)
+    r1 = self.create_record(p, m1)
+    m2 = self.evaluate('sklearn', SVC, p)
+    r2 = self.create_record(p, m2)
+    return [r1, r2]
+
+
+  def trials(self):
+    stats = []
+    for p in iter(ParameterGrid(self.grid)):
+      stats += self.trial(p)
+    return stats
+

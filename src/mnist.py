@@ -1,7 +1,7 @@
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
-from trial import trial
+from trial import Trial
 import time
 
 # test case for the mnist dataset #
@@ -35,14 +35,29 @@ featuresTest = mnist2.drop(columns=['label'])
 featuresTest = scaler.transform(featuresTest)
 # test #
 
-stats = []
-stats += trial(0.0001, 'linear', 1, featuresTrain, targetTrain, featuresTest, targetTest, DATANAME)
-stats += trial(0.01, 'linear', 1, featuresTrain, targetTrain, featuresTest, targetTest, DATANAME)
-stats += trial(1, 'linear', 1, featuresTrain, targetTrain, featuresTest, targetTest, DATANAME)
-stats += trial(100, 'linear', 1, featuresTrain, targetTrain, featuresTest, targetTest, DATANAME)
-stats += trial(10000, 'linear', 1, featuresTrain, targetTrain, featuresTest, targetTest, DATANAME)
-stats += trial(1, 'poly', 2, featuresTrain, targetTrain, featuresTest, targetTest, DATANAME)
-stats += trial(1, 'poly', 3, featuresTrain, targetTrain, featuresTest, targetTest, DATANAME)
-stats += trial(1, 'poly', 4, featuresTrain, targetTrain, featuresTest, targetTest, DATANAME)
+
+grid = [
+  {
+    'C':[1e-4, 1e-2, 1, 1e2, 1e4],
+    'kernel':['linear'],
+    'degree':[1],
+    'gamma':[1],
+  },
+  {
+    'C':[1],
+    'kernel':['poly'],
+    'degree':[2, 3, 4],
+    'gamma':[1],
+  },
+  {
+    'C':[1],
+    'kernel':['rbf'],
+    'degree':[1],
+    'gamma':[1e-4, 1e-2, 1, 1e2, 1e4],
+  }
+]
+
+trial = Trial(DATANAME, featuresTrain, targetTrain, featuresTest, targetTest, grid)
+stats = trial.trials()
 pd.DataFrame(stats, index=pd.RangeIndex(start=1, stop=len(stats)+1, name='Trial')).to_csv(LOGPATH, mode='w')
 print('Running time: ', time.time()-start)
