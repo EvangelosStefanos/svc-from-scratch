@@ -4,14 +4,16 @@ import cvxopt
 # Support Vector Machine Binary Classifier
 
 class Svm:  
-  def __init__(self, C=1.0, kernel='linear', degree=1):
+  def __init__(self, C=1.0, kernel='linear', degree=1, gamma=1):
     """
     @param C float regularization parameter (strictly positive)
-    @param kernel kernel parameter one of ['linear', 'poly']
+    @param kernel kernel parameter one of ['linear', 'poly', 'rbf']
     @param degree if kernel is 'poly' this is the degree of the polynomial
+    @gamma rbf kernel parameter
     """
     self.KERNEL_LINEAR = 'linear'
     self.KERNEL_POLY = 'poly'
+    self.KERNEL_RBF = 'rbf'
     
     cvxopt.solvers.options['show_progress'] = False
     cvxopt.solvers.options['abstol'] = 1e-20
@@ -23,18 +25,21 @@ class Svm:
     if (C <= 0):
       raise Exception('ERROR: Parameter C must be strictly positive. Got ' + str(C))
     self.C = C
-    kernels = [self.KERNEL_LINEAR, self.KERNEL_POLY]
+    kernels = [self.KERNEL_LINEAR, self.KERNEL_POLY, self.KERNEL_RBF]
     if(kernel not in kernels):
       raise Exception('ERROR: Kernel must be one of [\'linear\', \'poly\']. Got ' + str(kernel))
+    self.degree = degree
+    self.gamma = gamma
     if(kernel == self.KERNEL_LINEAR):
       self.kernel = self.kernel_linear
       self.scoreFunction = self.scoreFunctionLinear
     if(kernel == self.KERNEL_POLY):
       self.kernel = self.kernel_polynomial
-      self.degree = degree
+      self.scoreFunction = self.scoreFunctionNonLinear
+    if(kernel == self.KERNEL_RBF):
+      self.kernel = self.kernel_rbf
       self.scoreFunction = self.scoreFunctionNonLinear
     return
-
 
   def kernel_linear(self, x_i, x_j):
     '''
@@ -45,7 +50,6 @@ class Svm:
     '''
     return np.matmul(x_i, x_j.T)
 
-
   def kernel_polynomial(self, x_i, x_j):
     '''
     K(x_i, x_j) = (x_i * (x_j)^T + 1)^d
@@ -54,6 +58,18 @@ class Svm:
     @return K(x_i, x_j) array of shape (nsamples_i, nsamples_j)
     '''
     return (np.matmul(x_i, x_j.T) + 1.0)**self.degree
+
+  def kernel_rbf(self, x_i, x_j):
+    '''
+    https://stackoverflow.com/a/50900910
+    K(x_i, x_j) = exp( -gamma * norm(x_i - x_j)**2)
+    @param x_i array of shape (nsamples_i, nfeatures)
+    @param x_j array of shape (nsamples_j, nfeatures)
+    @return K(x_i, x_j) array of shape (nsamples_i, nsamples_j)
+    '''
+    x_i_norm = np.linalg.norm(x_i, axis=1) ** 2
+    x_j_norm = np.linalg.norm(x_j, axis=1) ** 2
+    return np.exp( -self.gamma * (x_i_norm.reshape((-1, 1)) + x_j_norm.reshape((1,-1)) - 2 * np.matmul(x_i, x_j.T)))
 
 
   def compute_w(self):
@@ -99,10 +115,7 @@ class Svm:
 
     # init qp vars #
 
-    K = np.zeros(shape=(nsamples, nsamples))
-    for i in range(nsamples):
-      for j in range(nsamples):
-        K[i,j] = self.kernel(x[i], x[j])
+    K = self.kernel(x, x)
     
     qp_P = np.outer(y, y) * K
     qp_q = np.ones((nsamples, 1)) * (-1.0)
