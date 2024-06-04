@@ -1,6 +1,6 @@
 import numpy as np
 import utils
-import Svm
+import svm
 
 # Support Vector Machine Multiclass Classifier (One vs All)
 
@@ -47,7 +47,7 @@ class Svc:
     for i in range(self.nclasses):
       class_i[y == self.classes[i]] = 1.0
       class_i[y != self.classes[i]] = -1.0
-      svms[i] = Svm.Svm(C=self.C, kernel=self.kernel, degree=self.degree)
+      svms[i] = svm.Svm(C=self.C, kernel=self.kernel, degree=self.degree)
       svms[i].fit(x, class_i)
     self.svms = svms
     self.n_support_ = self.nsupport()

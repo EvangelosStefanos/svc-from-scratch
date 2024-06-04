@@ -3,7 +3,7 @@ import sklearn.model_selection
 import sklearn.metrics
 import sklearn.svm
 import utils
-import Svc
+import svc
 
 
 class Trial:
@@ -57,7 +57,7 @@ class Trial:
 
 
   def trial(self, p):
-    m1 = self.evaluate('svc-from-scratch', Svc.Svc, p)
+    m1 = self.evaluate('svc-from-scratch', svc.Svc, p)
     r1 = self.create_record(p, m1)
     m2 = self.evaluate('sklearn', sklearn.svm.SVC, p)
     r2 = self.create_record(p, m2)
