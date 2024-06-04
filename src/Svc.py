@@ -1,4 +1,5 @@
 import numpy as np
+import utils
 import Svm
 
 # Support Vector Machine Multiclass Classifier (One vs All)
@@ -35,7 +36,7 @@ class Svc:
     # process input #
 
     if(y.ndim != 1):
-      raise Exception("ERROR: Expected array with shape (nsamples,). Got " + str(y.shape))
+      raise utils.MyValueError("ERROR: Expected array with shape (nsamples,). Got " + str(y.shape))
 
     self.classes = np.unique(y)
     self.nclasses = self.classes.shape[0]
@@ -59,7 +60,7 @@ class Svc:
     @return array of shape (nsamples,)
     """
     if(np.ndim(x) != 2):
-      raise Exception('ERROR: Expected array of shape (nsamples, nfeatures). Got ' + str(x.shape))
+      raise utils.MyValueError('ERROR: Expected array of shape (nsamples, nfeatures). Got ' + str(x.shape))
     scores = np.zeros((self.nclasses, x.shape[0])) # (nclasses, nsamples)
     for i in range(self.nclasses):
       scores[i] = self.svms[i].scoreFunction(x)

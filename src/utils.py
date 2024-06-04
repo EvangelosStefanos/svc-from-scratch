@@ -1,0 +1,4 @@
+class MyValueError(ValueError):
+  pass
+
+

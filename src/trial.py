@@ -1,8 +1,10 @@
 import time
-from sklearn.metrics import accuracy_score
-from sklearn.svm import SVC
-from sklearn.model_selection import ParameterGrid
-from Svc import Svc
+import sklearn.model_selection
+import sklearn.metrics
+import sklearn.svm
+import utils
+import Svc
+
 
 class Trial:
 
@@ -38,9 +40,9 @@ class Trial:
     m.fit(self.x, self.y)
 
     predx = m.predict(self.x)
-    accx = accuracy_score(self.y, predx)
+    accx = sklearn.metrics.accuracy_score(self.y, predx)
     predxn = m.predict(self.xn)
-    accxn = accuracy_score(self.yn, predxn)
+    accxn = sklearn.metrics.accuracy_score(self.yn, predxn)
     t = time.time()-start
     return {
       'name':name,
@@ -55,16 +57,21 @@ class Trial:
 
 
   def trial(self, p):
-    m1 = self.evaluate('svc-from-scratch', Svc, p)
+    m1 = self.evaluate('svc-from-scratch', Svc.Svc, p)
     r1 = self.create_record(p, m1)
-    m2 = self.evaluate('sklearn', SVC, p)
+    m2 = self.evaluate('sklearn', sklearn.svm.SVC, p)
     r2 = self.create_record(p, m2)
     return [r1, r2]
 
 
   def trials(self):
     stats = []
-    for p in iter(ParameterGrid(self.grid)):
-      stats += self.trial(p)
+    for i, p in enumerate(sklearn.model_selection.ParameterGrid(self.grid)):
+      try:
+        print(i, ' : ', p)
+        stats += self.trial(p)
+      except utils.MyValueError as e:
+        print(e)
+        continue
     return stats
 

@@ -1,5 +1,6 @@
 import numpy as np
 import cvxopt
+import utils
 
 # Support Vector Machine Binary Classifier
 
@@ -23,11 +24,11 @@ class Svm:
     # parameter test #
 
     if (C <= 0):
-      raise Exception('ERROR: Parameter C must be strictly positive. Got ' + str(C))
+      raise utils.MyValueError('ERROR: Parameter C must be strictly positive. Got ' + str(C))
     self.C = C
     kernels = [self.KERNEL_LINEAR, self.KERNEL_POLY, self.KERNEL_RBF]
     if(kernel not in kernels):
-      raise Exception('ERROR: Kernel must be one of [\'linear\', \'poly\']. Got ' + str(kernel))
+      raise utils.MyValueError('ERROR: Kernel must be one of [\'linear\', \'poly\']. Got ' + str(kernel))
     self.degree = degree
     self.gamma = gamma
     if(kernel == self.KERNEL_LINEAR):
@@ -104,11 +105,11 @@ class Svm:
     # process input #
     
     if(x.ndim != 2):
-      raise Exception("ERROR: Expected array with shape (nsamples, nfeatures). Got " + str(x.shape))
+      raise utils.MyValueError("ERROR: Expected array with shape (nsamples, nfeatures). Got " + str(x.shape))
     if(y.ndim != 1):
-      raise Exception("ERROR: Expected array with shape (nsamples,). Got " + str(y.shape))
+      raise utils.MyValueError("ERROR: Expected array with shape (nsamples,). Got " + str(y.shape))
     if(np.setdiff1d(y, [-1, 1]).shape[0] > 0):
-      raise Exception("ERROR: Target values must be one of {-1, 1}. Got " + str(y))
+      raise utils.MyValueError("ERROR: Target values must be one of {-1, 1}. Got " + str(y))
 
     nsamples = x.shape[0]
     self.nfeatures = x.shape[1]
@@ -149,7 +150,7 @@ class Svm:
     self.sv_idx = sv_idx
 
     if(qp_x[sv_idx].shape[0] == 0):
-      raise Exception('ERROR: No support vectors found. Got ' + str(qp_x))
+      raise utils.MyValueError('ERROR: No support vectors found. Got ' + str(qp_x))
 
     self.sv_a = qp_x[sv_idx]
     self.sv_x = x[sv_idx]
@@ -189,5 +190,5 @@ class Svm:
     @return g(x) array of shape (nsamples,)
     '''
     if(np.ndim(x) != 2):
-      raise Exception('ERROR: Expected array of shape (nsamples, nfeatures). Got ' + str(x.shape))
+      raise utils.MyValueError('ERROR: Expected array of shape (nsamples, nfeatures). Got ' + str(x.shape))
     return np.sign(self.scoreFunction(x))
